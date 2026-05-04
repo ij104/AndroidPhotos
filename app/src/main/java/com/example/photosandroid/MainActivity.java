@@ -1,6 +1,7 @@
 package com.example.photosandroid;
 
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -54,7 +55,9 @@ public class MainActivity extends AppCompatActivity {
 
         albumListView.setOnItemClickListener((parent, view, position, id) -> {
             Album selectedAlbum = photoManager.getAlbums().get(position);
-            Toast.makeText(this, "Open album: " + selectedAlbum.getName(), Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
+            intent.putExtra("albumName", selectedAlbum.getName());
+            startActivity(intent);
         });
 
         albumListView.setOnItemLongClickListener((parent, view, position, id) -> {
@@ -62,6 +65,17 @@ public class MainActivity extends AppCompatActivity {
             showAlbumOptionsDialog(selectedAlbum);
             return true;
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        photoManager = DataStorage.loadData(this);
+        if (albumAdapter != null) {
+            albumAdapter.clear();
+            albumAdapter.addAll(photoManager.getAlbums());
+            albumAdapter.notifyDataSetChanged();
+        }
     }
 
     private void showCreateAlbumDialog() {
