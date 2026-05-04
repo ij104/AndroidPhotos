@@ -29,6 +29,14 @@
         android:textSize="20sp"
         android:textStyle="bold"
         android:paddingTop="24dp"
+        android:paddingBottom="4dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/main_screen_hint"
+        android:textSize="13sp"
+        android:textColor="?android:attr/textColorSecondary"
         android:paddingBottom="8dp" />
 
     <ListView

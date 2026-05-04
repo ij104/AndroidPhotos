@@ -17,6 +17,9 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.photosandroid.model.Album;
 import com.example.photosandroid.model.Photo;
@@ -29,6 +32,10 @@ public class AlbumActivity extends AppCompatActivity {
     private Album album;
     private String albumName;
 
+    private TextView albumTitleTextView;
+    private Button backToAlbumsButton;
+    private Button addPhotoButton;
+    private GridView photoGridView;
     private PhotoGridAdapter photoGridAdapter;
 
     private ActivityResultLauncher<Intent> photoPickerLauncher;
@@ -39,9 +46,24 @@ public class AlbumActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_album);
 
-        TextView albumTitleTextView = findViewById(R.id.albumTitleTextView);
-        Button addPhotoButton = findViewById(R.id.addPhotoButton);
-        GridView photoGridView = findViewById(R.id.photoGridView);
+        int contentPad = (int) (16 * getResources().getDisplayMetrics().density + 0.5f);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.albumMain), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(
+                    systemBars.left + contentPad,
+                    systemBars.top + contentPad,
+                    systemBars.right + contentPad,
+                    systemBars.bottom + contentPad
+            );
+            return insets;
+        });
+
+        albumTitleTextView = findViewById(R.id.albumTitleTextView);
+        backToAlbumsButton = findViewById(R.id.backToAlbumsButton);
+        addPhotoButton = findViewById(R.id.addPhotoButton);
+        photoGridView = findViewById(R.id.photoGridView);
+
+        backToAlbumsButton.setOnClickListener(v -> finish());
 
         albumName = getIntent().getStringExtra("albumName");
 
@@ -82,7 +104,15 @@ public class AlbumActivity extends AppCompatActivity {
         photoManager = DataStorage.loadData(this);
         album = photoManager.getAlbumByName(albumName);
 
-        if (album != null && photoGridAdapter != null) {
+        if (album == null) {
+            Toast.makeText(this, "Album not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        albumTitleTextView.setText(album.getName());
+
+        if (photoGridAdapter != null) {
             photoGridAdapter.notifyDataSetChanged();
         }
     }
@@ -128,7 +158,7 @@ public class AlbumActivity extends AppCompatActivity {
                 .setTitle("Remove Photo")
                 .setMessage("Remove this photo from the album?")
                 .setPositiveButton("Remove", (dialog, which) -> {
-                    album.getPhotos().remove(position);
+                    album.removePhoto(album.getPhotos().get(position));
                     DataStorage.saveData(this, photoManager);
                     photoGridAdapter.notifyDataSetChanged();
                     Toast.makeText(this, "Photo removed", Toast.LENGTH_SHORT).show();
@@ -160,7 +190,11 @@ public class AlbumActivity extends AppCompatActivity {
 
             if (convertView == null) {
                 imageView = new ImageView(AlbumActivity.this);
-                int size = parent.getWidth() / 3;
+                int gridWidth = parent.getWidth();
+                if (gridWidth <= 0) {
+                    gridWidth = getResources().getDisplayMetrics().widthPixels;
+                }
+                int size = gridWidth / 3;
                 imageView.setLayoutParams(new GridView.LayoutParams(size, size));
                 imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
                 imageView.setPadding(4, 4, 4, 4);

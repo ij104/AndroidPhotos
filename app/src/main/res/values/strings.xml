@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">PhotosAndroid</string>
+    <string name="main_screen_hint">Tap an album to open it. Touch and hold an album to rename or delete it.</string>
+    <string name="album_screen_hint">Tap a photo to open it. Touch and hold a photo to remove it from this album.</string>
 </resources>

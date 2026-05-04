@@ -13,13 +13,29 @@
         android:text="Album"
         android:textSize="26sp"
         android:textStyle="bold"
-        android:paddingBottom="12dp" />
+        android:paddingBottom="8dp" />
+
+    <Button
+        android:id="@+id/backToAlbumsButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="Back to albums" />
 
     <Button
         android:id="@+id/addPhotoButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Add Photo" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/album_screen_hint"
+        android:textSize="13sp"
+        android:textColor="?android:attr/textColorSecondary"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp" />
 
     <GridView
         android:id="@+id/photoGridView"
