@@ -26,6 +26,8 @@ import com.example.photosandroid.model.Photo;
 import com.example.photosandroid.model.PhotoManager;
 import com.example.photosandroid.storage.DataStorage;
 
+import java.util.ArrayList;
+
 public class AlbumActivity extends AppCompatActivity {
 
     private PhotoManager photoManager;
@@ -93,7 +95,7 @@ public class AlbumActivity extends AppCompatActivity {
         });
 
         photoGridView.setOnItemLongClickListener((parent, view, position, id) -> {
-            showRemovePhotoDialog(position);
+            showPhotoOptionsDialog(position);
             return true;
         });
     }
@@ -153,15 +155,68 @@ public class AlbumActivity extends AppCompatActivity {
         photoPickerLauncher.launch(intent);
     }
 
+    private void showPhotoOptionsDialog(int position) {
+        String[] options = {"Remove Photo", "Move Photo"};
+
+        new AlertDialog.Builder(this)
+                .setTitle("Photo Options")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        showRemovePhotoDialog(position);
+                    } else if (which == 1) {
+                        showMovePhotoDialog(position);
+                    }
+                })
+                .show();
+    }
+
     private void showRemovePhotoDialog(int position) {
         new AlertDialog.Builder(this)
                 .setTitle("Remove Photo")
                 .setMessage("Remove this photo from the album?")
                 .setPositiveButton("Remove", (dialog, which) -> {
-                    album.removePhoto(album.getPhotos().get(position));
+                    album.getPhotos().remove(position);
                     DataStorage.saveData(this, photoManager);
                     photoGridAdapter.notifyDataSetChanged();
                     Toast.makeText(this, "Photo removed", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showMovePhotoDialog(int position) {
+        ArrayList<Album> targetAlbums = new ArrayList<>();
+
+        for (Album possibleAlbum : photoManager.getAlbums()) {
+            if (!possibleAlbum.getName().equalsIgnoreCase(album.getName())) {
+                targetAlbums.add(possibleAlbum);
+            }
+        }
+
+        if (targetAlbums.isEmpty()) {
+            Toast.makeText(this, "No other albums available", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String[] albumNames = new String[targetAlbums.size()];
+        for (int i = 0; i < targetAlbums.size(); i++) {
+            albumNames[i] = targetAlbums.get(i).getName();
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Move Photo To")
+                .setItems(albumNames, (dialog, which) -> {
+                    Album targetAlbum = targetAlbums.get(which);
+
+                    Photo photoToMove = album.getPhotos().get(position);
+
+                    album.getPhotos().remove(position);
+                    targetAlbum.addPhoto(photoToMove);
+
+                    DataStorage.saveData(this, photoManager);
+                    photoGridAdapter.notifyDataSetChanged();
+
+                    Toast.makeText(this, "Photo moved to " + targetAlbum.getName(), Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

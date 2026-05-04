@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
 
     private PhotoManager photoManager;
     private ArrayAdapter<Album> albumAdapter;
+    private ListView albumListView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,16 +41,10 @@ public class MainActivity extends AppCompatActivity {
 
         photoManager = DataStorage.loadData(this);
 
-        ListView albumListView = findViewById(R.id.albumListView);
+        albumListView = findViewById(R.id.albumListView);
         Button createAlbumButton = findViewById(R.id.createAlbumButton);
 
-        albumAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_1,
-                photoManager.getAlbums()
-        );
-
-        albumListView.setAdapter(albumAdapter);
+        attachAlbumAdapter();
 
         createAlbumButton.setOnClickListener(v -> showCreateAlbumDialog());
 
@@ -71,11 +66,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         photoManager = DataStorage.loadData(this);
-        if (albumAdapter != null) {
-            albumAdapter.clear();
-            albumAdapter.addAll(photoManager.getAlbums());
-            albumAdapter.notifyDataSetChanged();
-        }
+        attachAlbumAdapter();
+    }
+
+    /**
+     * Always bind the list to the current {@link PhotoManager#getAlbums()} instance so deletes
+     * and reloads from disk update the ListView immediately.
+     */
+    private void attachAlbumAdapter() {
+        albumAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_1,
+                photoManager.getAlbums()
+        );
+        albumListView.setAdapter(albumAdapter);
     }
 
     private void showCreateAlbumDialog() {
