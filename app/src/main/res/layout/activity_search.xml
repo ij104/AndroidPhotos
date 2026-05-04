@@ -51,11 +51,12 @@
             android:text="Location" />
     </RadioGroup>
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/firstValueEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tag value (e.g. name or place)"
+        android:hint="First tag value"
+        android:completionThreshold="1"
         android:inputType="textCapWords" />
 
     <TextView
@@ -119,11 +120,12 @@
             android:text="Location" />
     </RadioGroup>
 
-    <EditText
+    <AutoCompleteTextView
         android:id="@+id/secondValueEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Second tag value (leave blank for one-tag search)"
+        android:hint="Second tag value optional"
+        android:completionThreshold="1"
         android:inputType="textCapWords" />
 
     <Button

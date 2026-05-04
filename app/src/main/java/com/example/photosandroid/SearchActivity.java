@@ -5,9 +5,11 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.Filter;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
@@ -26,6 +28,10 @@ import com.example.photosandroid.model.Tag;
 import com.example.photosandroid.storage.DataStorage;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 
 public class SearchActivity extends AppCompatActivity {
 
@@ -34,8 +40,8 @@ public class SearchActivity extends AppCompatActivity {
     private RadioGroup firstTagTypeGroup;
     private RadioGroup operatorGroup;
     private RadioGroup secondTagTypeGroup;
-    private EditText firstValueEditText;
-    private EditText secondValueEditText;
+    private AutoCompleteTextView firstValueEditText;
+    private AutoCompleteTextView secondValueEditText;
     private Button backToAlbumsButton;
     private Button runSearchButton;
     private GridView searchResultsGridView;
@@ -72,6 +78,10 @@ public class SearchActivity extends AppCompatActivity {
         runSearchButton = findViewById(R.id.runSearchButton);
         searchResultsGridView = findViewById(R.id.searchResultsGridView);
 
+        firstTagTypeGroup.setOnCheckedChangeListener((group, checkedId) -> updateAutocompleteAdapters());
+        secondTagTypeGroup.setOnCheckedChangeListener((group, checkedId) -> updateAutocompleteAdapters());
+        updateAutocompleteAdapters();
+
         backToAlbumsButton.setOnClickListener(v -> finish());
 
         searchResults = new ArrayList<>();
@@ -94,6 +104,95 @@ public class SearchActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         photoManager = DataStorage.loadData(this);
+        updateAutocompleteAdapters();
+    }
+
+    private ArrayList<String> getTagValueSuggestions(String type) {
+        HashSet<String> values = new HashSet<>();
+
+        for (Album album : photoManager.getAlbums()) {
+            for (Photo photo : album.getPhotos()) {
+                for (Tag tag : photo.getTags()) {
+                    if (tag.getType().equalsIgnoreCase(type)) {
+                        values.add(tag.getValue());
+                    }
+                }
+            }
+        }
+
+        ArrayList<String> suggestions = new ArrayList<>(values);
+        Collections.sort(suggestions, String.CASE_INSENSITIVE_ORDER);
+        return suggestions;
+    }
+
+    private void updateAutocompleteAdapters() {
+        String firstType = getFirstTagType();
+        String secondType = getSecondTagType();
+
+        ArrayAdapter<String> firstAdapter = newCaseInsensitiveSuggestionAdapter(
+                getTagValueSuggestions(firstType));
+        ArrayAdapter<String> secondAdapter = newCaseInsensitiveSuggestionAdapter(
+                getTagValueSuggestions(secondType));
+
+        firstValueEditText.setAdapter(firstAdapter);
+        secondValueEditText.setAdapter(secondAdapter);
+    }
+
+    /**
+     * Prefix filtering for the dropdown is case-insensitive (default {@link ArrayAdapter} is not).
+     */
+    private ArrayAdapter<String> newCaseInsensitiveSuggestionAdapter(ArrayList<String> items) {
+        return new CaseInsensitivePrefixArrayAdapter(this, items);
+    }
+
+    private static class CaseInsensitivePrefixArrayAdapter extends ArrayAdapter<String> {
+
+        private final ArrayList<String> allItems;
+        private Filter filter;
+
+        CaseInsensitivePrefixArrayAdapter(android.content.Context context, ArrayList<String> items) {
+            super(context, android.R.layout.simple_dropdown_item_1line, new ArrayList<>(items));
+            allItems = new ArrayList<>(items);
+        }
+
+        @Override
+        public Filter getFilter() {
+            if (filter == null) {
+                filter = new Filter() {
+                    @Override
+                    protected FilterResults performFiltering(CharSequence constraint) {
+                        FilterResults r = new FilterResults();
+                        if (constraint == null || constraint.length() == 0) {
+                            r.values = new ArrayList<>(allItems);
+                            r.count = allItems.size();
+                        } else {
+                            String p = constraint.toString().toLowerCase(Locale.ROOT).trim();
+                            ArrayList<String> matched = new ArrayList<>();
+                            for (String s : allItems) {
+                                if (s.toLowerCase(Locale.ROOT).startsWith(p)) {
+                                    matched.add(s);
+                                }
+                            }
+                            r.values = matched;
+                            r.count = matched.size();
+                        }
+                        return r;
+                    }
+
+                    @Override
+                    protected void publishResults(CharSequence constraint, FilterResults results) {
+                        clear();
+                        if (results.count > 0) {
+                            @SuppressWarnings("unchecked")
+                            List<String> values = (List<String>) results.values;
+                            addAll(values);
+                        }
+                        notifyDataSetChanged();
+                    }
+                };
+            }
+            return filter;
+        }
     }
 
     private String getFirstTagType() {
