@@ -1,19 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:orientation="vertical"
+    android:padding="24dp">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:id="@+id/titleTextView"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:text="Photos App"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:paddingBottom="16dp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <Button
+        android:id="@+id/createAlbumButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Album" />
+
+    <TextView
+        android:id="@+id/albumsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Albums"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:paddingTop="24dp"
+        android:paddingBottom="8dp" />
+
+    <ListView
+        android:id="@+id/albumListView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+</LinearLayout>
