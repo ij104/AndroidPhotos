@@ -22,6 +22,7 @@
         </activity>
         <activity android:name=".AlbumActivity" />
         <activity android:name=".PhotoDisplayActivity" />
+        <activity android:name=".SearchActivity" />
     </application>
 
 </manifest>

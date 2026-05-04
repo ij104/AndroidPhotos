@@ -21,6 +21,13 @@
         android:layout_height="wrap_content"
         android:text="Create Album" />
 
+    <Button
+        android:id="@+id/searchPhotosButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Search Photos"
+        android:layout_marginTop="8dp" />
+
     <TextView
         android:id="@+id/albumsLabel"
         android:layout_width="match_parent"

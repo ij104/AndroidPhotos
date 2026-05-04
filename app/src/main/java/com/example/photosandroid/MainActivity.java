@@ -24,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private PhotoManager photoManager;
     private ArrayAdapter<Album> albumAdapter;
     private ListView albumListView;
+    private Button searchPhotosButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,10 +44,16 @@ public class MainActivity extends AppCompatActivity {
 
         albumListView = findViewById(R.id.albumListView);
         Button createAlbumButton = findViewById(R.id.createAlbumButton);
+        searchPhotosButton = findViewById(R.id.searchPhotosButton);
 
         attachAlbumAdapter();
 
         createAlbumButton.setOnClickListener(v -> showCreateAlbumDialog());
+
+        searchPhotosButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+            startActivity(intent);
+        });
 
         albumListView.setOnItemClickListener((parent, view, position, id) -> {
             Album selectedAlbum = photoManager.getAlbums().get(position);
