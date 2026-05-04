@@ -1,7 +1,6 @@
 package com.example.photosandroid;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -92,10 +91,21 @@ public class SearchActivity extends AppCompatActivity {
 
         searchResultsGridView.setOnItemClickListener((parent, view, position, id) -> {
             SearchResult result = searchResults.get(position);
+            photoManager = DataStorage.loadData(this);
+            Album freshAlbum = photoManager.getAlbumByName(result.album.getName());
+            if (freshAlbum == null) {
+                Toast.makeText(this, "Album no longer exists", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            int index = findPhotoIndexByUri(freshAlbum, result.photo.getUriString());
+            if (index < 0) {
+                Toast.makeText(this, "Photo no longer in that album", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
             Intent intent = new Intent(SearchActivity.this, PhotoDisplayActivity.class);
-            intent.putExtra("albumName", result.album.getName());
-            intent.putExtra("photoIndex", result.photoIndex);
+            intent.putExtra("albumName", freshAlbum.getName());
+            intent.putExtra("photoIndex", index);
             startActivity(intent);
         });
     }
@@ -193,6 +203,23 @@ public class SearchActivity extends AppCompatActivity {
             }
             return filter;
         }
+    }
+
+    /**
+     * Resolves the current index of a photo in an album by URI string (works after reload / reorder).
+     */
+    private static int findPhotoIndexByUri(Album album, String uriString) {
+        if (uriString == null) {
+            return -1;
+        }
+        ArrayList<Photo> photos = album.getPhotos();
+        for (int i = 0; i < photos.size(); i++) {
+            String u = photos.get(i).getUriString();
+            if (uriString.equals(u)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private String getFirstTagType() {
@@ -337,7 +364,7 @@ public class SearchActivity extends AppCompatActivity {
             }
 
             Photo photo = searchResults.get(position).photo;
-            imageView.setImageURI(Uri.parse(photo.getUriString()));
+            UriUtil.loadPhotoIntoImageView(SearchActivity.this, imageView, photo.getUriString(), false);
 
             return imageView;
         }

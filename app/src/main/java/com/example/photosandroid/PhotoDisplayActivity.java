@@ -1,7 +1,6 @@
 package com.example.photosandroid;
 
 import android.app.AlertDialog;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -28,6 +27,7 @@ public class PhotoDisplayActivity extends AppCompatActivity {
     private PhotoManager photoManager;
     private Album album;
     private int photoIndex;
+    private String albumNameFromIntent;
 
     private TextView photoTitleTextView;
     private ImageView fullPhotoImageView;
@@ -73,11 +73,11 @@ public class PhotoDisplayActivity extends AppCompatActivity {
         addLocationTagButton.setOnClickListener(v -> showAddTagDialog("location", "Add location tag"));
         removeTagButton.setOnClickListener(v -> showRemoveTagDialog());
 
-        String albumName = getIntent().getStringExtra("albumName");
+        albumNameFromIntent = getIntent().getStringExtra("albumName");
         photoIndex = getIntent().getIntExtra("photoIndex", 0);
 
         photoManager = DataStorage.loadData(this);
-        album = photoManager.getAlbumByName(albumName);
+        album = photoManager.getAlbumByName(albumNameFromIntent);
 
         if (album == null || album.getPhotos().isEmpty()) {
             Toast.makeText(this, "Photo not found", Toast.LENGTH_SHORT).show();
@@ -88,8 +88,6 @@ public class PhotoDisplayActivity extends AppCompatActivity {
         if (photoIndex < 0 || photoIndex >= album.getPhotos().size()) {
             photoIndex = 0;
         }
-
-        showCurrentPhoto();
 
         previousPhotoButton.setOnClickListener(v -> {
             if (photoIndex > 0) {
@@ -110,6 +108,25 @@ public class PhotoDisplayActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        photoManager = DataStorage.loadData(this);
+        album = photoManager.getAlbumByName(albumNameFromIntent);
+        if (album == null || album.getPhotos().isEmpty()) {
+            Toast.makeText(this, "Album or photos are no longer available", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        if (photoIndex >= album.getPhotos().size()) {
+            photoIndex = Math.max(0, album.getPhotos().size() - 1);
+        }
+        if (photoIndex < 0) {
+            photoIndex = 0;
+        }
+        showCurrentPhoto();
+    }
+
     private Photo getCurrentPhoto() {
         return album.getPhotos().get(photoIndex);
     }
@@ -125,6 +142,10 @@ public class PhotoDisplayActivity extends AppCompatActivity {
                     String value = input.getText().toString().trim();
                     if (value.isEmpty()) {
                         Toast.makeText(this, "Tag cannot be empty", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (getCurrentPhoto().hasTagMatching(tagType, value)) {
+                        Toast.makeText(this, "That tag is already on this photo", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     getCurrentPhoto().addTag(new Tag(tagType, value));
@@ -183,7 +204,7 @@ public class PhotoDisplayActivity extends AppCompatActivity {
 
     private void showCurrentPhoto() {
         Photo photo = album.getPhotos().get(photoIndex);
-        fullPhotoImageView.setImageURI(Uri.parse(photo.getUriString()));
+        UriUtil.loadPhotoIntoImageView(this, fullPhotoImageView, photo.getUriString(), true);
 
         String title = "Photo " + (photoIndex + 1) + " of " + album.getPhotos().size();
         photoTitleTextView.setText(title);

@@ -258,7 +258,7 @@ public class AlbumActivity extends AppCompatActivity {
             }
 
             Photo photo = album.getPhotos().get(position);
-            imageView.setImageURI(Uri.parse(photo.getUriString()));
+            UriUtil.loadPhotoIntoImageView(AlbumActivity.this, imageView, photo.getUriString(), false);
 
             return imageView;
         }

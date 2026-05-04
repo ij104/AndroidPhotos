@@ -27,4 +27,17 @@ public class Photo implements Serializable {
     public void removeTag(Tag tag) {
         tags.remove(tag);
     }
+
+    /** @return whether this photo already has a tag with the same type and value (case-insensitive). */
+    public boolean hasTagMatching(String type, String value) {
+        if (type == null || value == null) {
+            return false;
+        }
+        for (Tag t : tags) {
+            if (t.getType().equalsIgnoreCase(type) && t.getValue().equalsIgnoreCase(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

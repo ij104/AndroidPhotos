@@ -3,10 +3,8 @@ package com.example.photosandroid;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -14,16 +12,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.photosandroid.model.Album;
 import com.example.photosandroid.model.PhotoManager;
 import com.example.photosandroid.storage.DataStorage;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AlbumRecyclerAdapter.Listener {
 
     private PhotoManager photoManager;
-    private ArrayAdapter<Album> albumAdapter;
-    private ListView albumListView;
+    private AlbumRecyclerAdapter albumRecyclerAdapter;
+    private RecyclerView albumRecyclerView;
     private Button searchPhotosButton;
 
     @Override
@@ -42,11 +42,14 @@ public class MainActivity extends AppCompatActivity {
 
         photoManager = DataStorage.loadData(this);
 
-        albumListView = findViewById(R.id.albumListView);
+        albumRecyclerView = findViewById(R.id.albumRecyclerView);
         Button createAlbumButton = findViewById(R.id.createAlbumButton);
         searchPhotosButton = findViewById(R.id.searchPhotosButton);
 
-        attachAlbumAdapter();
+        albumRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        albumRecyclerAdapter = new AlbumRecyclerAdapter(this);
+        albumRecyclerView.setAdapter(albumRecyclerAdapter);
+        albumRecyclerAdapter.setPhotoManager(photoManager);
 
         createAlbumButton.setOnClickListener(v -> showCreateAlbumDialog());
 
@@ -54,39 +57,25 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, SearchActivity.class);
             startActivity(intent);
         });
-
-        albumListView.setOnItemClickListener((parent, view, position, id) -> {
-            Album selectedAlbum = photoManager.getAlbums().get(position);
-            Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
-            intent.putExtra("albumName", selectedAlbum.getName());
-            startActivity(intent);
-        });
-
-        albumListView.setOnItemLongClickListener((parent, view, position, id) -> {
-            Album selectedAlbum = photoManager.getAlbums().get(position);
-            showAlbumOptionsDialog(selectedAlbum);
-            return true;
-        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         photoManager = DataStorage.loadData(this);
-        attachAlbumAdapter();
+        albumRecyclerAdapter.setPhotoManager(photoManager);
     }
 
-    /**
-     * Always bind the list to the current {@link PhotoManager#getAlbums()} instance so deletes
-     * and reloads from disk update the ListView immediately.
-     */
-    private void attachAlbumAdapter() {
-        albumAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_list_item_1,
-                photoManager.getAlbums()
-        );
-        albumListView.setAdapter(albumAdapter);
+    @Override
+    public void onAlbumClick(Album album) {
+        Intent intent = new Intent(MainActivity.this, AlbumActivity.class);
+        intent.putExtra("albumName", album.getName());
+        startActivity(intent);
+    }
+
+    @Override
+    public void onAlbumLongClick(Album album) {
+        showAlbumOptionsDialog(album);
     }
 
     private void showCreateAlbumDialog() {
@@ -103,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
                     if (added) {
                         DataStorage.saveData(this, photoManager);
-                        albumAdapter.notifyDataSetChanged();
+                        albumRecyclerAdapter.notifyDataSetChanged();
                         Toast.makeText(this, "Album created", Toast.LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(this, "Invalid or duplicate album name", Toast.LENGTH_SHORT).show();
@@ -151,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
 
                     album.setName(newName);
                     DataStorage.saveData(this, photoManager);
-                    albumAdapter.notifyDataSetChanged();
+                    albumRecyclerAdapter.notifyDataSetChanged();
 
                     Toast.makeText(this, "Album renamed", Toast.LENGTH_SHORT).show();
                 })
@@ -166,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("Delete", (dialog, which) -> {
                     photoManager.deleteAlbum(album);
                     DataStorage.saveData(this, photoManager);
-                    albumAdapter.notifyDataSetChanged();
+                    albumRecyclerAdapter.notifyDataSetChanged();
 
                     Toast.makeText(this, "Album deleted", Toast.LENGTH_SHORT).show();
                 })

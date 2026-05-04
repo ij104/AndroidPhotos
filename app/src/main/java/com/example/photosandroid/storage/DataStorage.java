@@ -4,6 +4,8 @@ import android.content.Context;
 
 import com.example.photosandroid.model.PhotoManager;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
@@ -15,10 +17,10 @@ public class DataStorage {
     public static void saveData(Context context, PhotoManager manager) {
         try {
             FileOutputStream fos = context.openFileOutput(FILE_NAME, Context.MODE_PRIVATE);
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
             oos.writeObject(manager);
             oos.close();
-            fos.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -27,10 +29,10 @@ public class DataStorage {
     public static PhotoManager loadData(Context context) {
         try {
             FileInputStream fis = context.openFileInput(FILE_NAME);
-            ObjectInputStream ois = new ObjectInputStream(fis);
+            BufferedInputStream bis = new BufferedInputStream(fis);
+            ObjectInputStream ois = new ObjectInputStream(bis);
             PhotoManager manager = (PhotoManager) ois.readObject();
             ois.close();
-            fis.close();
             return manager;
         } catch (Exception e) {
             return new PhotoManager();
