@@ -2,8 +2,8 @@
 
 ## Team Members
 
-- Ivan
-- Eric
+- Ivan Jiang
+- Eric Loebs
 
 ## Project Description
 
